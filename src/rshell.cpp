@@ -17,7 +17,7 @@ class Line
 		vector<Line> data;
 	public:
 		//void listener();
-		virtual void process() = 0;
+		//virtual void process() = 0;
 };
 
 //Listener - Takes user input
@@ -69,6 +69,8 @@ int main()
     //cout << "Hello World!!" << endl;
     //Our structure should work: while(Base->process() != "exit")
     //Or something....
+    
+    //while Base != NULL <- 
 	while(c != "exit")
 	{
 		initializeUser();
