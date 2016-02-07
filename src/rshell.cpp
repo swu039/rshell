@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 
+//Enable getlogin function
+#include <unistd.h>
+
 using namespace std;
 
 //Base Class: Line
@@ -20,8 +23,23 @@ class Solo: public Line
 		void process();
 };
 
+void initializeUser()
+{
+	char* user = getlogin();
+	//char* host = gethostname();
+	if(user == NULL)
+	{
+		cout << "Error: Unidentified User." << endl;
+	}
+	else
+	{
+		cout << user << '@' << '$' << endl;
+	}
+}
+
 int main()
 {
     cout << "Hello World!!" << endl;
+	initializeUser();
     return 0;
 }
