@@ -16,9 +16,21 @@ class Line
 	private:
 		vector<Line> data;
 	public:
-		void listener();
-		virtual void process();
+		//void listener();
+		virtual void process() = 0;
 };
+
+//Listener - Takes user input
+string listener()
+{
+	string command;
+
+	getline(cin, command);
+	//cout << "Your commands: " <<  command << endl;
+	
+	//Parse
+	return command;
+}
 
 //Inheritances: Solo, Duo, Connector
 class Solo: public Line
@@ -27,6 +39,7 @@ class Solo: public Line
 		void process();
 };
 
+//rshell prompt
 void initializeUser()
 {
 	char* user = getlogin();
@@ -54,10 +67,12 @@ int main()
 	string c;
 
     //cout << "Hello World!!" << endl;
+    //Our structure should work: while(Base->process() != "exit")
+    //Or something....
 	while(c != "exit")
 	{
 		initializeUser();
-		cin >> c;
+		c = listener();
 	}
     return 0;
 }
