@@ -3,8 +3,12 @@
 
 //Enable getlogin function
 #include <unistd.h>
-
+//Enable variable size of buffer
+#include <stdio.h>
 using namespace std;
+
+//Global Variables
+const unsigned buffSize = BUFSIZ;
 
 //Base Class: Line
 class Line
@@ -26,16 +30,21 @@ class Solo: public Line
 void initializeUser()
 {
 	char* user = getlogin();
-	//char* host = gethostname();
+	char host[buffSize];
+	int hostID = gethostname(host, 1024);
 	//Guards to be added for NULL cases
 	//Host to be added
 	if(user == NULL)
 	{
 		cout << "Error: Unidentified User." << endl;
 	}
+	else if(hostID == -1)
+	{
+		cout << "Error: Unidentified Host." << endl;
+	}
 	else
 	{
-		cout << user << '@' << "$ ";
+		cout << user << '@' << host << "$ ";
 	}
 }
 
