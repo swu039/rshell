@@ -27,19 +27,28 @@ void initializeUser()
 {
 	char* user = getlogin();
 	//char* host = gethostname();
+	//Guards to be added for NULL cases
+	//Host to be added
 	if(user == NULL)
 	{
 		cout << "Error: Unidentified User." << endl;
 	}
 	else
 	{
-		cout << user << '@' << '$' << endl;
+		cout << user << '@' << "$ ";
 	}
 }
 
 int main()
 {
-    cout << "Hello World!!" << endl;
-	initializeUser();
+	//Assumption
+	string c;
+
+    //cout << "Hello World!!" << endl;
+	while(c != "exit")
+	{
+		initializeUser();
+		cin >> c;
+	}
     return 0;
 }
