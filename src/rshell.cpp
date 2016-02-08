@@ -1,24 +1,21 @@
 #include <iostream>
 #include <vector>
+#include <string>
 
-//Enable getlogin function
+//fork, execvp, wait
 #include <unistd.h>
-//Enable variable size of buffer
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <string.h>
+
 using namespace std;
 
 //Global Variables
 const unsigned buffSize = BUFSIZ;
 
-//Base Class: Line
-class Line
-{
-	private:
-		vector<Line> data;
-	public:
-		//void listener();
-		//virtual void process() = 0;
-};
+
 
 //Listener - Takes user input
 string listener()
@@ -32,13 +29,6 @@ string listener()
 	return command;
 }
 
-//Inheritances: Solo, Duo, Connector
-class Solo: public Line
-{
-	public:
-		void process();
-};
-
 //rshell prompt
 void initializeUser()
 {
@@ -49,11 +39,11 @@ void initializeUser()
 	//Host to be added
 	if(user == NULL)
 	{
-		cout << "Error: Unidentified User." << endl;
+		//perror("Unidentified User");
 	}
 	else if(hostID == -1)
 	{
-		cout << "Error: Unidentified Host." << endl;
+		//perror("Unidentified Host");
 	}
 	else
 	{
@@ -63,18 +53,141 @@ void initializeUser()
 
 int main()
 {
-	//Assumption
-	string c;
+	//rshell
+	
+    //fork
+    while(1)
+    {
+		
+		string command;
+    	pid_t pid = fork();
+	    
+		//pid
+	    if(pid == -1)
+	    {
+	        perror("fork");
+	    }
+	    
+	    //Child
+	    if(pid == 0)
+	    {
+	    	//rshell prompt
+	    	initializeUser();
+		
+			//retrieve line
+			getline(cin, command);
+		
+			char instruct[command.size() + 1];
+			
+		    // Load command into instruct
+		    for(int i = 0; i < command.size(); i++)
+		    {
+		        instruct[i] = command.at(i);
+		    }
+		    
+			//NULL
+			instruct[command.size()] = '\0';
+			//first Initalization
+			vector<string> cmds;
+			char* token = strtok((char*)instruct, " ");
 
-    //cout << "Hello World!!" << endl;
-    //Our structure should work: while(Base->process() != "exit")
-    //Or something....
+			//Push main command
+			cmds.push_back(token);
+			
+			/*
+			Exit Piece
+			if(init == "exit")
+			{
+				//Adding piece
+				char* b[3];
+				
+				string Rune = "touch";
+				string Soul = "killme.txt";
+				
+				b[0] = (char*)Rune.c_str();
+				
+				b[1] = (char*)Soul.c_str();
+		    	b[2] = NULL;
+				
+				
+				cout << "Time to die!" << endl;
+				if(execvp (b[0], b) == -1)
+				{
+					//cout << "Called execvp" << endl;
+			    	perror("exec");
+			    }
+				
+			}
+			
+			*/
+		    
+		    //Insert arguments
+		    while(token != NULL)
+		    {
+		        token = strtok(NULL, " ");
+		        
+		        //NULL Guard
+		        if(token == NULL)
+		        {
+		            break;
+		        }
+		        cmds.push_back(token);
+		    }
+		    
+		    //Convert in char* in order to call execvp
+		    char* cmd_exe[cmds.size() + 1];
+		    
+		    //Load cmd_exe
+		    for(int i = 0; i < cmds.size(); i++)
+		    {
+		    	cmd_exe[i] = (char*)cmds.at(i).c_str();
+		    	//cout << "cmd " << i << " is: " << cmd_exe[i] << endl;
+		    }
+		    
+		    //Set NULL ending the command
+		    cmd_exe[cmds.size()] = NULL;
+		    //cout << "cmd " << cmds.size() << " is: " << cmd_exe[cmds.size()] << endl;
+		    
+		    //call execvp
+		    if(execvp (cmd_exe[0], cmd_exe) == -1)
+			{
+		    	perror("exec");
+		    }
+	    }
+	    
+	    //Parent
+	    if(pid > 0)
+		{
+			if(wait(0) == -1)
+			{
+				perror("wait");
+			}
+			
+			//Removing piece
+			// char* b[3];
+			
+			// string Rune = "rm";
+			// string Soul = "killme.txt";
+			
+			// b[0] = (char*)Rune.c_str();
+			
+			// b[1] = (char*)Soul.c_str();
+	  //  	b[2] = NULL;
+
+			// if(execvp (b[0], b) == -1)
+			// {
+				
+			// 	//cout << "Called execvp" << endl;
+		 //   	perror("exec");
+		 //   }
+				
+		}
+		
+    }
     
-    //while Base != NULL <- 
-	while(c != "exit")
-	{
-		initializeUser();
-		c = listener();
-	}
+	
+	
+	
+	
     return 0;
 }
