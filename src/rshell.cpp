@@ -15,20 +15,6 @@ using namespace std;
 //Global Variables
 const unsigned buffSize = BUFSIZ;
 
-
-
-//Listener - Takes user input
-string listener()
-{
-	string command;
-
-	getline(cin, command);
-	//cout << "Your commands: " <<  command << endl;
-	
-	//Parse
-	return command;
-}
-
 //rshell prompt
 void initializeUser()
 {
@@ -54,14 +40,23 @@ void initializeUser()
 int main()
 {
 	//rshell
-	
+
     //fork
     while(1)
     {
+    	//Pipe array: index 0 = read, index 1 = write
+		int fd[2];
+		char atad[10];
+    	
+    	
+    	//Pipe
+		if(pipe(fd) == -1)
+		{
+			perror("pipe");
+		}
 		
 		string command;
     	pid_t pid = fork();
-	    
 		//pid
 	    if(pid == -1)
 	    {
@@ -71,9 +66,12 @@ int main()
 	    //Child
 	    if(pid == 0)
 	    {
+			cout << "---Child---" << endl;
+	    	
 	    	//rshell prompt
 	    	initializeUser();
-		
+			//bool flag;
+			
 			//retrieve line
 			getline(cin, command);
 		
@@ -90,38 +88,30 @@ int main()
 			//first Initalization
 			vector<string> cmds;
 			char* token = strtok((char*)instruct, " ");
-
+			
+			
+			//PIPING
+			string s = token;
+			if(s == "exit")
+	        {
+	        	//cout << "W" << endl;
+	    		write(fd[1],"yes\0", 4);
+	    		exit(1);
+	        }
+	        else
+	        {
+	        	
+	    		write(fd[1],"no\0", 4);
+	        }
+			//PIPING
+			
+			
+			
 			//Push main command
 			cmds.push_back(token);
-			
-			/*
-			Exit Piece
-			if(init == "exit")
-			{
-				//Adding piece
-				char* b[3];
-				
-				string Rune = "touch";
-				string Soul = "killme.txt";
-				
-				b[0] = (char*)Rune.c_str();
-				
-				b[1] = (char*)Soul.c_str();
-		    	b[2] = NULL;
-				
-				
-				cout << "Time to die!" << endl;
-				if(execvp (b[0], b) == -1)
-				{
-					//cout << "Called execvp" << endl;
-			    	perror("exec");
-			    }
-				
-			}
-			
-			*/
+
 		    
-		    //Insert arguments
+		    //Insert arguments / cmds / connectors
 		    while(token != NULL)
 		    {
 		        token = strtok(NULL, " ");
@@ -130,6 +120,10 @@ int main()
 		        if(token == NULL)
 		        {
 		            break;
+		        }
+		        if(*token == ';')
+		        {
+		        	break;
 		        }
 		        cmds.push_back(token);
 		    }
@@ -158,31 +152,26 @@ int main()
 	    //Parent
 	    if(pid > 0)
 		{
+			//Close writing
+			//close(fd[1]);
 			if(wait(0) == -1)
 			{
 				perror("wait");
 			}
 			
-			//Removing piece
-			// char* b[3];
-			
-			// string Rune = "rm";
-			// string Soul = "killme.txt";
-			
-			// b[0] = (char*)Rune.c_str();
-			
-			// b[1] = (char*)Soul.c_str();
-	  //  	b[2] = NULL;
-
-			// if(execvp (b[0], b) == -1)
-			// {
+			cout << "---Parent---" << endl;
+			read(fd[0], atad, 4);
+	
+			//cout << "atad: " << atad << endl;
 				
-			// 	//cout << "Called execvp" << endl;
-		 //   	perror("exec");
-		 //   }
-				
+			string s = atad;
+			//cout << "s: " << s << endl;
+			if(s == "yes")
+			{
+				cout << "Now Killing Parent" << endl;
+				exit(1);
+			}
 		}
-		
     }
     
 	
