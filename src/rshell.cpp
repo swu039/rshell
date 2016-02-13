@@ -82,8 +82,7 @@ int main()
 		
 		//rshell prompt
     	initializeUser();
-
-		cout << "fakeprompt@weoweo$ ";
+    	
 		//retrieve line
 		getline(cin, command);
 	
@@ -127,10 +126,15 @@ int main()
 	    	}
 	    
 	    //By now all are parsed by space
+	    
+	    //boolean for determining successive operations
 	    bool status = true;
+	    
+	    //actual child-progress command storage
 	    vector<string> set;
 	    int j = 0;
 	    
+	    //Base case command
 	    for(; j < static_cast<int>(cmds.size()); ++j) {
 	    	
 	    	if ((cmds.at(j) != "||") &&
@@ -149,6 +153,7 @@ int main()
 	    status = rshell(set);
 	    set.clear();
 	    
+	    //loading in successive commands after base case
 	    for(int i = j; i < static_cast<int>(cmds.size()); i++)
 	    {
 	    	
@@ -197,6 +202,7 @@ int main()
 	    	else if(set.size() == 1 && set.at(0) == "#") break;
 	    }
 	    
+	    //dealing with last base case, (where last string != connector)
 	    if(set.size() != 0 && set.at(0) == ";")
 		{
 	    	popfront();
@@ -227,29 +233,15 @@ int main()
     return 0;
 }
 
-
+//function for calling children to action
 bool rshell(vector<string>& set)
 {
 	while(!set.empty())
 	{
-		
-		//Pipe array: index 0 = read, index 1 = write
-		// int fd[2];
-		// char atad[10];
-		
-		
-		//cout << cmds.at(0) << endl;
 		if(set.at(0) == "exit")
 		{
-			//cout << "BREAK" << endl;
 			exit(0);
 		}
-		
-		//Pipe
-		// if(pipe(fd) == -1)
-		// {
-		// 	perror("pipe");
-		// }
 
     	
     	//Pid / Fork
@@ -263,7 +255,6 @@ bool rshell(vector<string>& set)
 	    //Child
 	    if(pid == 0)
 	    {
-			//cout << "---Child---" << endl;
 		    
 		    //Convert in char* in order to call execvp
 		    char* cmd_exe[512];
@@ -271,28 +262,18 @@ bool rshell(vector<string>& set)
 		    for(int i = 0; i < static_cast<int>(set.size()); i++)
 		    {
 		    	cmd_exe[i] = (char*)set.at(i).c_str();
-		    	//cout << "cmd " << i << " is: " << cmd_exe[i] << endl;
 		    }
 		    
 		    //Set NULL ending the command
 		    cmd_exe[set.size()] = NULL;
-		    //cmd_exe[set.size()] = '\0';
-		    //cout << "cmd " << cmds.size() << " is: " << cmd_exe[cmds.size()] << endl;
-		    
-		    //write(fd[1],"pass\0", 5);
-		    	
 		    
 		    //call execvp
 		    if(execvp (cmd_exe[0], cmd_exe) == -1)
 			{
 		    	perror("exec");
-		    	//DEBUG HERE
-		    	//write(fd[1],"fail\0", 5);
 		    	
 		    	exit(-1);
 		    }
-
-			//write(fd[1],"pass\0", 5);
 		    
 	    }
 	   
@@ -300,39 +281,16 @@ bool rshell(vector<string>& set)
 	    //Parent
 	    if(pid > 0)
 		{
-			// if(wait(0) == -1)
-			// {
-			// 	perror("wait");
-			// }
 			int status;
 			
 			//Wait
 			waitpid(0, &status, 0);
 			
-			
-			//cout << "Status: " << status << endl;
 			//Error
 			if(status > 0)
 			{
 				return false;
 			}
-			
-			//cout << status << endl;
-			//cout << "---Parent---" << endl;
-			//Read from pipe
-			//read(fd[0], atad, 5);
-	
-			//cout << "atad: " << atad << endl;
-				
-			//string s = atad;
-			//cout << "s: " << s << endl;
-			// if(s == "fail")
-			// {
-			// 	cout << "Now Killing Parent" << endl;
-			// 	// Exit rshell
-			// 	//exit(0);
-			// 	return false;
-			// }
 			
 			return true;
 		}
