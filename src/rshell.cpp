@@ -91,18 +91,25 @@ int main()
 	    // Load command into instruct
 	    for(int i = 0; i < static_cast<int>(command.size()); i++)
 	    {
-	        instruct[i] = command.at(i);
+        	instruct[i] = command.at(i);
 	    }
-	    
+	  	
 		//NULL
 		instruct[command.size()] = '\0';
+		
 		//first Initalization
 		vector<string> cmds;
+		//comment container
+		vector<string> comment;
 		
 		char* token = strtok((char*)instruct, " ");
 		
-		//Push main command
-		cmds.push_back(token);
+		//Push main comment
+		if(token != '\0')
+		{
+			comment.push_back(token);
+		}
+		
 		
 		//Insert arguments / cmds / connectors
 	    while(token != NULL)
@@ -115,16 +122,68 @@ int main()
 	            break;
 	        }
 	        
-	        cmds.push_back(token);
+	        comment.push_back(token);
 	    }
 	    
-	    while (cmds.at(cmds.size() - 1) == "&&" || cmds.at(cmds.size() - 1) == "||") 
+	    //Filter cmds: look for '#', ';'
+	    for(int i = 0; i < comment.size(); i++)
+	    {
+	    	if(comment.at(i).at(0) == '#' || comment.at(i).at(0) == '\t')
+	    	{
+	    		break;
+	    	}
+	    	//Filter ';'
+	    	else if(comment.at(i).find(';') != string::npos)
+	    	{
+	    		int s_index = 0;
+	    		for(int j = 0; j < comment.at(i).size(); j++)
+		    	{
+
+		    		if(comment.at(i).find(';', j) != string::npos)
+		    		{
+			    	 	j = comment.at(i).find(';', j);
+			    	 	//Found/Parse/Push
+			    	 	string breaker = comment.at(i).substr(s_index, j - s_index);
+			    	 	string semi = comment.at(i).substr(j, 1);
+			    	 	s_index = (j + 1);
+			    	 	cmds.push_back(breaker);
+			    	 	cmds.push_back(semi);
+		    		}
+		    		else
+		    		{
+			    	 	string breaker = comment.at(i).substr(j, comment.at(i).size() - j);
+			    	 	//cout << "Breaker: " << breaker << endl;
+		    			cmds.push_back(breaker);
+		    			break;
+		    		}
+		    		//cout << "currently: " << j << endl;
+		    	}
+	    	}
+	    	else
+	    	{
+	    		cmds.push_back(comment.at(i));
+	    	}
+	    }
+		
+		
+		//DEBUGGING PURPOSESE: UNCOMMENT TO SEE ALL THE PARSED COMMENTS	    
+	    cout << "-------------CMDS HAS---------------------" << endl;
+	    for(int i = 0; i < cmds.size(); i++)
+	    {
+	    	cout << cmds.at(i) << endl;
+	    }
+	    
+	    cout << "------------------------------------------" << endl;
+	    //Check if cmds is empty
+	    if(!cmds.empty())
+	    {
+	    	while (cmds.at(cmds.size() - 1) == "&&" || cmds.at(cmds.size() - 1) == "||") 
 	    	{
 	    		cout << "> ";
 	    		
 	    		inputcont;
 	    	}
-	    
+	    }
 	    //By now all are parsed by space
 	    
 	    //boolean for determining successive operations
@@ -270,7 +329,7 @@ bool rshell(vector<string>& set)
 		    //call execvp
 		    if(execvp (cmd_exe[0], cmd_exe) == -1)
 			{
-		    	perror("exec");
+				perror("exec");
 		    	
 		    	exit(-1);
 		    }
