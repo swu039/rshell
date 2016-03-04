@@ -31,12 +31,13 @@
 #include <vector>
 #include <string>
 
-//fork, execvp, wait
+//fork, execvp, wait, stat
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <string.h>
 
 using namespace std;
@@ -68,7 +69,8 @@ void initializeUser()
 
 //rshell
 bool rshell(vector<string>& set);
-
+//test
+bool test(const vector<string>& shadow);
 
 int main()
 {
@@ -166,7 +168,7 @@ int main()
 	    }
 		
 		
-		//DEBUGGING PURPOSESE: UNCOMMENT TO SEE ALL THE PARSED COMMENTS	    
+		//DEBUGGING PURPOSES: UNCOMMENT TO SEE ALL THE PARSED COMMENTS	    
 	    cout << "-------------CMDS HAS---------------------" << endl;
 	    for(int i = 0; i < cmds.size(); i++)
 	    {
@@ -208,10 +210,34 @@ int main()
 	    			break;
 	    		}
 	    }
+		//DEBUGGING PURPOSES: UNCOMMENT TO SEE ALL THE PARSED COMMENTS	    
+	    cout << "-------------SET HAS (1)------------------" << endl;
+	    for(int i = 0; i < set.size(); i++)
+	    {
+	    	cout << set.at(i) << endl;
+	    }
 	    
-	    status = rshell(set);
-	    set.clear();
-	    
+	    cout << "------------------------------------------" << endl;
+		
+		if(set.at(0) == "test")
+		{
+			cout << "Calling function bool test();" << endl;
+			if(test(set))
+			{
+				cout << "(True)" << endl;
+			}
+			else
+			{
+				cout << "(False)" << endl;
+			}
+			set.clear();
+		}
+		else
+		{
+			    
+		    status = rshell(set);
+		    set.clear();
+		}
 	    //loading in successive commands after base case
 	    for(int i = j; i < static_cast<int>(cmds.size()); i++)
 	    {
@@ -357,4 +383,82 @@ bool rshell(vector<string>& set)
 		set.clear();
 	}
 	return true;
+}
+
+//Test function
+
+bool test(const vector<string>& shadow)
+{
+    
+    //Initialize struct
+    struct stat attributes;
+    
+    //Assume the entire set is passed in; structure: test -flags /path/filename
+    // Ignore item 1, check flags
+    
+    int index = 1;
+    bool reg = false;
+    bool dir = false;
+    while(shadow.at(index) == "-e" || shadow.at(index) == "-f" || shadow.at(index) == "-d")
+    {
+        //We can ignore -e due to its default; we are always checking if it exists.
+        if(shadow.at(index) == "-f")
+        {
+            reg = true;
+        }
+        if(shadow.at(index) == "-d")
+        {
+            dir = true;
+        }
+        index++;
+    }
+    
+    
+    //Next index is the specified name, if detect 'preceding \', then delete.
+    string name;
+    if(shadow.at(index).at(0) == '/')
+    {
+        cout << "found one" << endl;
+        name = shadow.at(index).substr(1);
+    }
+    else
+    {
+        name = shadow.at(index);
+    }
+    cout << "name: " << name << endl;
+    
+    // Pass struct memory as pointer on stat()
+    stat((char*)name.c_str(),&attributes);
+    
+    //Perform checks
+    if(!access((char*)name.c_str(), F_OK))
+    {
+        if(reg)
+        {    
+            cout << "-f: ";
+            if(S_ISREG(attributes.st_mode))
+            {
+                cout << "I AM REGULAR FILE" << endl;
+            }
+            else
+            {
+                cout << "NOPE IM NOT REGULAR" << endl;
+            }
+        }
+        
+        if(dir)
+        {
+            cout << "-d: ";
+            if(S_ISDIR(attributes.st_mode))
+            {
+                cout << "I AM DIRECTORY" << endl;
+            }
+            else
+            {
+                cout << "NOPE IM NOT DIR" << endl;
+            }
+        }
+        return true;
+    }
+    return false;
 }
